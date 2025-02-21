@@ -1,6 +1,7 @@
 import datetime
 import eel       #*
 import pyttsx3  #*
+import pyaudio
 import speech_recognition as sr  #*
 import wikipedia  #*             
 import smtplib
@@ -14,8 +15,8 @@ import wolframalpha  #*
 from playsound import playsound  #*
 from time import sleep
 
-eel.init("www")
 
+eel.init("www")
 engine = pyttsx3.init()
 
 def speak(audio):
@@ -139,7 +140,9 @@ def get_weather():
         print(e)
         eel.DisplayMessage("Unable to get the weather information at the moment..!")
         speak("Unable to get the weather information at the moment")
+        
 
+    
 def calculate(query):
     app_id = '7T599E-433LT9KE64'
     client = wolframalpha.Client(app_id)
@@ -168,7 +171,6 @@ def answer_general_query(query):
             speak("The answer is " + ans)
             print("The answer is " + ans)
         else:
-            
             eel.DisplayMessage("I could not find the answer. Please try again")
             speak("I could not find the answer. Please try again")
             print("I could not find the answer. Please try again")
@@ -182,26 +184,22 @@ def activate_jarvis():
         query = takeCommand()
         eel.display_command(query)
         eel.DisplayMessage(query)  # Display recognized command on Siri Wave UI
+        
         if "hello jarvis" in query:
             speak("Hello sir, I am Jarvis!")
-            
             wishme()
         elif "time" in query:
             time()
             eel.DisplayMessage(f"Current time is {datetime.datetime.now().strftime('%I:%M:%S')}")
-
         elif "date" in query:
             date()
             eel.DisplayMessage(f"Current date is {datetime.datetime.now().strftime('%d-%m-%Y')}")
-        
         elif "open" in query:
             open_application(query)
             eel.DisplayMessage(f"Opening {query}")
-        
         elif "screenshot" in query:
             screenshot()
             eel.DisplayMessage("Screenshot taken...!")
-        
         elif "email" in query:
             try:
                 speak("What should I say?")
@@ -216,11 +214,10 @@ def activate_jarvis():
                 speak("Unable to send the email")
         elif "weather" in query:
             get_weather()
-            
         elif "calculate" in query:
             eel.DisplayMessage(query)
             calculate(query)
-        elif "wikipedia" in query:  #big messages aren't displayed into the the display of siri wave as its sceen size is fixed using css properties so there is no space to display big commands //so big messages are being avoied by default-------
+        elif "wikipedia" in query:  # Big messages might be truncated on the UI
             speak("Searching Wikipedia...")
             query = query.replace("wikipedia", "")
             results = wikipedia.summary(query, sentences=3)
@@ -228,46 +225,37 @@ def activate_jarvis():
             speak(results)
             print(results)
             eel.DisplayMessage(results)
-            
-
         elif "search in chrome" in query:
             query = query.replace("search", "")
             query = urllib.parse.quote_plus(query)
             wb.open(f"https://www.google.com/search?q={query}")
             speak("Here are the search results")
             eel.DisplayMessage(f"Search results for: {query}")
-            
-            
         elif 'play songs' in query:
             eel.DisplayMessage("Which song do you want to play?")
             speak("Which song do you want to play?")
-            
             song = takeCommand().lower()
-            eel.DisplayMessage(f"Song is being played {song}")
+            eel.DisplayMessage(f"Song is being played: {song}")
             eel.DisplayMessage("Playing.....")
             speak("Playing...")
             pywhatkit.playonyt(song)
-        
         elif 'logout' in query:
             os.system("shutdown -l")
-        elif 'restart' in query:         #**it will forcefully shutdown the system without saving any file runnig in background that's why its commented out now
+        elif 'restart' in query:
             os.system("shutdown /r /t 1")
         elif 'shutdown' in query:
-            os.system("shutdown /s /t 1") 
-                               
+            os.system("shutdown /s /t 1")
         elif "youtube" in query:
             query = query.replace("youtube", "")
             query = urllib.parse.quote_plus(query)
             eel.DisplayMessage(query)
             wb.open(f"https://www.youtube.com/results?search_query={query}")
             speak("Here are the YouTube results")
-
         elif "remember" in query:
             rememberMessage = query.replace("remember that", "")
             speak("You asked me to remember: " + rememberMessage)
             with open("data.txt", "w") as f:
                 f.write(rememberMessage)
-        
         elif "do you remember" in query:
             try:
                 with open("data.txt", "r") as f:
@@ -275,12 +263,10 @@ def activate_jarvis():
                     speak("You asked me to remember that " + rememberMessage)
             except FileNotFoundError:
                 speak("I don't have any notes to remember.")
-       
         elif "offline" in query:
             eel.DisplayMessage("Going offline. Goodbye!")
             speak("Going offline. Goodbye!")
             quit()
-       
         else:
             answer_general_query(query)
             eel.DisplayMessage(query)
